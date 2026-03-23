@@ -55,17 +55,17 @@ export function SiteFooter() {
 									{" "}
 									{getVersion()}{" "}
 								</a>
-							</li>								{health.data?.fork_version && (
+							</li>								{health.data?.forkVersion && (
 									<li className="list-inline-item">
 										<a
-											href={`https://github.com/slackerchris/nginx-proxy-manager/commit/${health.data.fork_commit ?? ""}`}
+											href={`https://github.com/slackerchris/nginx-proxy-manager/commit/${health.data.forkCommit ?? ""}`}
 											className="link-secondary"
 											target="_blank"
 											rel="noopener"
 											title="slackerchris fork"
 										>
-											fork&nbsp;{health.data.fork_version}
-											{health.data.fork_commit ? `@${health.data.fork_commit.slice(0, 7)}` : ""}
+											fork&nbsp;{health.data.forkVersion}
+											{health.data.forkCommit ? `@${health.data.forkCommit.slice(0, 7)}` : ""}
 										</a>
 									</li>
 								)}							{versionData?.updateAvailable && versionData?.latest && (

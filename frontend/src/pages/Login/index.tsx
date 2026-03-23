@@ -199,10 +199,10 @@ export default function Login() {
 				</div>
 				<div className="text-center text-secondary mt-3">
 					{getVersion()}
-					{health.data?.fork_version && (
+					{health.data?.forkVersion && (
 						<span className="ms-2 text-muted" style={{ fontSize: "0.8em" }}>
-							fork&nbsp;{health.data.fork_version}
-							{health.data.fork_commit ? `@${health.data.fork_commit.slice(0, 7)}` : ""}
+							fork&nbsp;{health.data.forkVersion}
+							{health.data.forkCommit ? `@${health.data.forkCommit.slice(0, 7)}` : ""}
 						</span>
 					)}
 				</div>

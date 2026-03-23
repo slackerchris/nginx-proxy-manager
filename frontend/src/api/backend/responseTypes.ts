@@ -4,8 +4,8 @@ export interface HealthResponse {
 	status: string;
 	version: AppVersion;
 	setup: boolean;
-	fork_version?: string | null;
-	fork_commit?: string | null;
+	forkVersion?: string | null;
+	forkCommit?: string | null;
 }
 
 export interface TokenResponse {
