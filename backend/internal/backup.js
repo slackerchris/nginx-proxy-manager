@@ -191,89 +191,141 @@ const internalBackup = {
 				);
 			}
 
-			// Read and validate manifest
+			// Read and validate manifest — fall back to legacy auto-detect if absent
 			const manifestPath = path.join(extractDir, "manifest.json");
-			if (!fs.existsSync(manifestPath)) {
-				throw new errs.ValidationError(
-					"Invalid backup: manifest.json not found",
-				);
-			}
+			let manifest = null;
+			let isLegacy = false;
 
-			let manifest;
-			try {
-				manifest = JSON.parse(
-					fs.readFileSync(manifestPath, { encoding: "utf8" }),
-				);
-			} catch {
-				throw new errs.ValidationError(
-					"Invalid backup: manifest.json is corrupt or unreadable",
-				);
-			}
-
-			if (
-				!manifest.version ||
-				!manifest.created_at ||
-				!Array.isArray(manifest.contents)
-			) {
-				throw new errs.ValidationError(
-					"Invalid backup: manifest.json is missing required fields",
-				);
-			}
-
-			// Verify DB engine matches so we don't restore a MySQL backup onto a SQLite instance (or vice versa)
-			const currentEngine = isSqlite()
-				? "sqlite"
-				: (configGet("database")?.engine || "unknown");
-			if (manifest.db_engine !== currentEngine) {
-				throw new errs.ValidationError(
-					`Backup DB engine (${manifest.db_engine}) does not match current configuration (${currentEngine})`,
-				);
-			}
-
-			// Restore: database
-			if (manifest.contents.includes("database")) {
-				const backupDb = path.join(
-					extractDir,
-					"database",
-					"database.sqlite",
-				);
-				if (!fs.existsSync(backupDb)) {
+			if (fs.existsSync(manifestPath)) {
+				try {
+					manifest = JSON.parse(
+						fs.readFileSync(manifestPath, { encoding: "utf8" }),
+					);
+				} catch {
 					throw new errs.ValidationError(
-						"Backup claims to contain database but database/database.sqlite is missing",
+						"Invalid backup: manifest.json is corrupt or unreadable",
 					);
 				}
-				const targetDb =
-					process.env.DB_SQLITE_FILE || "/data/database.sqlite";
-				fs.copyFileSync(backupDb, targetDb);
-			}
 
-			// Restore: nginx config
-			if (manifest.contents.includes("nginx_config")) {
-				const backupNginx = path.join(extractDir, "nginx");
-				if (fs.existsSync(backupNginx)) {
-					copyDirSync(backupNginx, path.join(DATA_DIR, "nginx"));
-				}
-			}
-
-			// Restore: letsencrypt live certs
-			if (manifest.contents.includes("letsencrypt_live")) {
-				const src = path.join(extractDir, "letsencrypt", "live");
-				if (fs.existsSync(src)) {
-					copyDirSync(
-						src,
-						path.join(DATA_DIR, "letsencrypt", "live"),
+				if (
+					!manifest.version ||
+					!manifest.created_at ||
+					!Array.isArray(manifest.contents)
+				) {
+					throw new errs.ValidationError(
+						"Invalid backup: manifest.json is missing required fields",
 					);
 				}
+
+				// Verify DB engine matches so we don't restore a MySQL backup onto a SQLite instance (or vice versa)
+				const currentEngine = isSqlite()
+					? "sqlite"
+					: (configGet("database")?.engine || "unknown");
+				if (manifest.db_engine !== currentEngine) {
+					throw new errs.ValidationError(
+						`Backup DB engine (${manifest.db_engine}) does not match current configuration (${currentEngine})`,
+					);
+				}
+			} else {
+				// Legacy backup (no manifest.json) — auto-detect from well-known paths.
+				// Supports archives rooted at /data/, data/, or the contents directly.
+				isLegacy = true;
+				manifest = { version: "legacy", created_at: null, contents: [] };
 			}
 
-			// Restore: letsencrypt renewal configs
-			if (manifest.contents.includes("letsencrypt_renewal")) {
-				const src = path.join(extractDir, "letsencrypt", "renewal");
-				if (fs.existsSync(src)) {
-					copyDirSync(
-						src,
-						path.join(DATA_DIR, "letsencrypt", "renewal"),
+			const targetDb = process.env.DB_SQLITE_FILE || "/data/database.sqlite";
+
+			if (isLegacy) {
+				// Probe for the SQLite file in common legacy locations
+				const dbCandidates = [
+					path.join(extractDir, "database.sqlite"),
+					path.join(extractDir, "database", "database.sqlite"),
+					path.join(extractDir, "data", "database.sqlite"),
+				];
+				const foundDb = dbCandidates.find((p) => fs.existsSync(p));
+				if (foundDb) {
+					fs.copyFileSync(foundDb, targetDb);
+					manifest.contents.push("database");
+				}
+
+				// Probe for nginx config
+				const nginxCandidates = [
+					path.join(extractDir, "nginx"),
+					path.join(extractDir, "data", "nginx"),
+				];
+				for (const src of nginxCandidates) {
+					if (fs.existsSync(src)) {
+						copyDirSync(src, path.join(DATA_DIR, "nginx"));
+						manifest.contents.push("nginx_config");
+						break;
+					}
+				}
+
+				// Probe for letsencrypt live
+				const leLiveCandidates = [
+					path.join(extractDir, "letsencrypt", "live"),
+					path.join(extractDir, "data", "letsencrypt", "live"),
+				];
+				for (const src of leLiveCandidates) {
+					if (fs.existsSync(src)) {
+						copyDirSync(src, path.join(DATA_DIR, "letsencrypt", "live"));
+						manifest.contents.push("letsencrypt_live");
+						break;
+					}
+				}
+
+				// Probe for letsencrypt renewal
+				const leRenewalCandidates = [
+					path.join(extractDir, "letsencrypt", "renewal"),
+					path.join(extractDir, "data", "letsencrypt", "renewal"),
+				];
+				for (const src of leRenewalCandidates) {
+					if (fs.existsSync(src)) {
+						copyDirSync(src, path.join(DATA_DIR, "letsencrypt", "renewal"));
+						manifest.contents.push("letsencrypt_renewal");
+						break;
+					}
+				}
+
+				if (manifest.contents.length === 0) {
+					throw new errs.ValidationError(
+						"Could not find any recognisable data in this archive (no database, nginx, or letsencrypt directories found)",
 					);
+				}
+			} else {
+				// Restore: database
+				if (manifest.contents.includes("database")) {
+					const backupDb = path.join(extractDir, "database", "database.sqlite");
+					if (!fs.existsSync(backupDb)) {
+						throw new errs.ValidationError(
+							"Backup claims to contain database but database/database.sqlite is missing",
+						);
+					}
+					fs.copyFileSync(backupDb, targetDb);
+				}
+
+				// Restore: nginx config
+				if (manifest.contents.includes("nginx_config")) {
+					const backupNginx = path.join(extractDir, "nginx");
+					if (fs.existsSync(backupNginx)) {
+						copyDirSync(backupNginx, path.join(DATA_DIR, "nginx"));
+					}
+				}
+
+				// Restore: letsencrypt live certs
+				if (manifest.contents.includes("letsencrypt_live")) {
+					const src = path.join(extractDir, "letsencrypt", "live");
+					if (fs.existsSync(src)) {
+						copyDirSync(src, path.join(DATA_DIR, "letsencrypt", "live"));
+					}
+				}
+
+				// Restore: letsencrypt renewal configs
+				if (manifest.contents.includes("letsencrypt_renewal")) {
+					const src = path.join(extractDir, "letsencrypt", "renewal");
+					if (fs.existsSync(src)) {
+						copyDirSync(src, path.join(DATA_DIR, "letsencrypt", "renewal"));
+					}
 				}
 			}
 
@@ -283,6 +335,7 @@ const internalBackup = {
 				backup_version: manifest.version,
 				contents: manifest.contents,
 				restart_required: true,
+				legacy_import: isLegacy,
 			};
 		} finally {
 			// Always clean up temp files regardless of success or failure
