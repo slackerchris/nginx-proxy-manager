@@ -162,10 +162,17 @@ const internalBackup = {
 			fs.writeFileSync(tmpArchive, fileBuffer);
 
 			// List archive contents and validate for path traversal before extracting
-			const { stdout: listing } = await execFileAsync("tar", [
-				"-tzf",
-				tmpArchive,
-			]);
+			let listing;
+			try {
+				({ stdout: listing } = await execFileAsync("tar", [
+					"-tzf",
+					tmpArchive,
+				]));
+			} catch {
+				throw new errs.ValidationError(
+					"Invalid backup file: not a valid gzip archive",
+				);
+			}
 			const entries = listing.split("\n").filter(Boolean);
 			for (const entry of entries) {
 				if (path.isAbsolute(entry) || entry.includes("../")) {
@@ -176,7 +183,13 @@ const internalBackup = {
 			}
 
 			// Extract to isolated temp directory
-			await execFileAsync("tar", ["-xzf", tmpArchive, "-C", extractDir]);
+			try {
+				await execFileAsync("tar", ["-xzf", tmpArchive, "-C", extractDir]);
+			} catch {
+				throw new errs.ValidationError(
+					"Invalid backup file: extraction failed",
+				);
+			}
 
 			// Read and validate manifest
 			const manifestPath = path.join(extractDir, "manifest.json");
