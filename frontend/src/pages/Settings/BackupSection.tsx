@@ -126,7 +126,7 @@ export default function BackupSection() {
 							</div>
 						)}
 						<Button
-							color="danger"
+							color="red"
 							onClick={handleRestore}
 							isLoading={isRestoring}
 							disabled={!restoreFile || !restoreConfirmed}>
