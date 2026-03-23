@@ -85,16 +85,16 @@ export default function Table({ data, isFetching, onDelete, onRenew, onDownload,
 					let badgeClass = "badge ms-2 ";
 					let badgeText: string;
 					if (expired) {
-						badgeClass += "bg-danger";
+						badgeClass += "bg-danger-lt text-danger";
 						badgeText = "Expired";
 					} else if (days !== null && days <= 14) {
-						badgeClass += "bg-danger";
+						badgeClass += "bg-danger-lt text-danger";
 						badgeText = `${days}d`;
 					} else if (days !== null && days <= 30) {
-						badgeClass += "bg-warning";
+						badgeClass += "bg-warning-lt text-warning";
 						badgeText = `${days}d`;
 					} else if (days !== null) {
-						badgeClass += "bg-success";
+						badgeClass += "bg-success-lt text-success";
 						badgeText = `${days}d`;
 					} else {
 						badgeText = "";
