@@ -1,5 +1,6 @@
 import { IconDotsVertical, IconDownload, IconRefresh, IconTrash } from "@tabler/icons-react";
 import { createColumnHelper, getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import { differenceInDays, isPast } from "date-fns";
 import { useMemo } from "react";
 import type { Certificate } from "src/api/backend";
 import {
@@ -77,7 +78,33 @@ export default function Table({ data, isFetching, onDelete, onRenew, onDownload,
 				id: "expiresOn",
 				header: intl.formatMessage({ id: "column.expires" }),
 				cell: (info: any) => {
-					return <DateFormatter value={info.getValue()} highlightPast />;
+					const value = info.getValue();
+					const d = value ? new Date(value) : null;
+					const expired = d ? isPast(d) : false;
+					const days = d ? differenceInDays(d, new Date()) : null;
+					let badgeClass = "badge ms-2 ";
+					let badgeText: string;
+					if (expired) {
+						badgeClass += "bg-danger";
+						badgeText = "Expired";
+					} else if (days !== null && days <= 14) {
+						badgeClass += "bg-danger";
+						badgeText = `${days}d`;
+					} else if (days !== null && days <= 30) {
+						badgeClass += "bg-warning";
+						badgeText = `${days}d`;
+					} else if (days !== null) {
+						badgeClass += "bg-success";
+						badgeText = `${days}d`;
+					} else {
+						badgeText = "";
+					}
+					return (
+						<span>
+							<DateFormatter value={value} highlightPast highlistNearlyExpired />
+							{badgeText && <span className={badgeClass}>{badgeText}</span>}
+						</span>
+					);
 				},
 			}),
 			columnHelper.accessor((row: any) => row, {
