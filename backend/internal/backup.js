@@ -191,8 +191,18 @@ const internalBackup = {
 				);
 			}
 
+			// If the archive was packed with a single top-level wrapper directory
+			// (e.g. tar -czf backup.tar.gz npm-backup-20230101/), strip it so all
+			// probes work regardless of how the user packed the archive.
+			const topLevelEntries = fs.readdirSync(extractDir, { withFileTypes: true });
+			const probeRoot = (
+				topLevelEntries.length === 1 && topLevelEntries[0].isDirectory()
+					? path.join(extractDir, topLevelEntries[0].name)
+					: extractDir
+			);
+
 			// Read and validate manifest — fall back to legacy auto-detect if absent
-			const manifestPath = path.join(extractDir, "manifest.json");
+			const manifestPath = path.join(probeRoot, "manifest.json");
 			let manifest = null;
 			let isLegacy = false;
 
@@ -238,9 +248,9 @@ const internalBackup = {
 			if (isLegacy) {
 				// Probe for the SQLite file in common legacy locations
 				const dbCandidates = [
-					path.join(extractDir, "database.sqlite"),
-					path.join(extractDir, "database", "database.sqlite"),
-					path.join(extractDir, "data", "database.sqlite"),
+					path.join(probeRoot, "database.sqlite"),
+					path.join(probeRoot, "database", "database.sqlite"),
+					path.join(probeRoot, "data", "database.sqlite"),
 				];
 				const foundDb = dbCandidates.find((p) => fs.existsSync(p));
 				if (foundDb) {
@@ -250,8 +260,8 @@ const internalBackup = {
 
 				// Probe for nginx config
 				const nginxCandidates = [
-					path.join(extractDir, "nginx"),
-					path.join(extractDir, "data", "nginx"),
+					path.join(probeRoot, "nginx"),
+					path.join(probeRoot, "data", "nginx"),
 				];
 				for (const src of nginxCandidates) {
 					if (fs.existsSync(src)) {
@@ -263,8 +273,8 @@ const internalBackup = {
 
 				// Probe for letsencrypt live
 				const leLiveCandidates = [
-					path.join(extractDir, "letsencrypt", "live"),
-					path.join(extractDir, "data", "letsencrypt", "live"),
+					path.join(probeRoot, "letsencrypt", "live"),
+					path.join(probeRoot, "data", "letsencrypt", "live"),
 				];
 				for (const src of leLiveCandidates) {
 					if (fs.existsSync(src)) {
@@ -276,8 +286,8 @@ const internalBackup = {
 
 				// Probe for letsencrypt renewal
 				const leRenewalCandidates = [
-					path.join(extractDir, "letsencrypt", "renewal"),
-					path.join(extractDir, "data", "letsencrypt", "renewal"),
+					path.join(probeRoot, "letsencrypt", "renewal"),
+					path.join(probeRoot, "data", "letsencrypt", "renewal"),
 				];
 				for (const src of leRenewalCandidates) {
 					if (fs.existsSync(src)) {
@@ -295,7 +305,7 @@ const internalBackup = {
 			} else {
 				// Restore: database
 				if (manifest.contents.includes("database")) {
-					const backupDb = path.join(extractDir, "database", "database.sqlite");
+					const backupDb = path.join(probeRoot, "database", "database.sqlite");
 					if (!fs.existsSync(backupDb)) {
 						throw new errs.ValidationError(
 							"Backup claims to contain database but database/database.sqlite is missing",
@@ -306,7 +316,7 @@ const internalBackup = {
 
 				// Restore: nginx config
 				if (manifest.contents.includes("nginx_config")) {
-					const backupNginx = path.join(extractDir, "nginx");
+					const backupNginx = path.join(probeRoot, "nginx");
 					if (fs.existsSync(backupNginx)) {
 						copyDirSync(backupNginx, path.join(DATA_DIR, "nginx"));
 					}
@@ -314,7 +324,7 @@ const internalBackup = {
 
 				// Restore: letsencrypt live certs
 				if (manifest.contents.includes("letsencrypt_live")) {
-					const src = path.join(extractDir, "letsencrypt", "live");
+					const src = path.join(probeRoot, "letsencrypt", "live");
 					if (fs.existsSync(src)) {
 						copyDirSync(src, path.join(DATA_DIR, "letsencrypt", "live"));
 					}
@@ -322,7 +332,7 @@ const internalBackup = {
 
 				// Restore: letsencrypt renewal configs
 				if (manifest.contents.includes("letsencrypt_renewal")) {
-					const src = path.join(extractDir, "letsencrypt", "renewal");
+					const src = path.join(probeRoot, "letsencrypt", "renewal");
 					if (fs.existsSync(src)) {
 						copyDirSync(src, path.join(DATA_DIR, "letsencrypt", "renewal"));
 					}
