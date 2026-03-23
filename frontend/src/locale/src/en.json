@@ -155,6 +155,12 @@
 	"backup.create.description": {
 		"defaultMessage": "Download an archive of your configuration. Does not include ACME account keys."
 	},
+	"backup.restart.dismiss": {
+		"defaultMessage": "Dismiss"
+	},
+	"backup.restart.required": {
+		"defaultMessage": "Restore complete. A service restart is required to apply changes."
+	},
 	"backup.restore": {
 		"defaultMessage": "Restore from Backup"
 	},
@@ -637,6 +643,12 @@
 	},
 	"proxy-hosts.count": {
 		"defaultMessage": "{count} {count, plural, one {Proxy Host} other {Proxy Hosts}}"
+	},
+	"proxy-hosts.duplicate-warning": {
+		"defaultMessage": "{count} {count, plural, one {destination is} other {destinations are}} forwarded to by multiple proxy hosts"
+	},
+	"proxy-hosts.duplicate-warning-icon": {
+		"defaultMessage": "This forward destination is used by multiple proxy hosts"
 	},
 	"public": {
 		"defaultMessage": "Public"

@@ -1,4 +1,4 @@
-import { IconHelp, IconSearch } from "@tabler/icons-react";
+import { IconAlertTriangle, IconHelp, IconSearch } from "@tabler/icons-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import Alert from "react-bootstrap/Alert";
@@ -49,6 +49,16 @@ export default function TableWrapper() {
 		setSearch("");
 	}
 
+	// Detect duplicate forward destinations (same host:port used by multiple proxy hosts)
+	const forwardCounts = new Map<string, number>();
+	data?.forEach((h) => {
+		const key = `${h.forwardHost}:${h.forwardPort}`;
+		forwardCounts.set(key, (forwardCounts.get(key) ?? 0) + 1);
+	});
+	const duplicateKeys = new Set(
+		[...forwardCounts].filter(([, count]) => count > 1).map(([key]) => key),
+	);
+
 	return (
 		<div className="card mt-4">
 			<div className="card-status-top bg-lime" />
@@ -94,10 +104,17 @@ export default function TableWrapper() {
 						</div>
 					</div>
 				</div>
+			{duplicateKeys.size > 0 && (
+				<div className="alert alert-warning d-flex align-items-center gap-2 m-3">
+					<IconAlertTriangle size={18} className="flex-shrink-0" />
+					<T id="proxy-hosts.duplicate-warning" data={{ count: duplicateKeys.size }} />
+				</div>
+			)}
 				<Table
 					data={filtered ?? data ?? []}
 					isFiltered={!!search}
 					isFetching={isFetching}
+					duplicateKeys={duplicateKeys}
 					onEdit={(id: number) => showProxyHostModal(id)}
 					onDelete={(id: number) => {
 						const host = data?.find((h) => h.id === id);

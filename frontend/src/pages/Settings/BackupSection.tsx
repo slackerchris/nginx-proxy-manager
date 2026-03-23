@@ -1,15 +1,16 @@
-import { IconAlertTriangle, IconDownload, IconUpload } from "@tabler/icons-react";
+import { IconAlertTriangle, IconDownload, IconRefresh, IconUpload } from "@tabler/icons-react";
 import { useRef, useState } from "react";
 import { createBackup, restoreBackup } from "src/api/backend";
 import { Button } from "src/components";
 import { T } from "src/locale";
-import { showError, showSuccess } from "src/notifications";
+import { showError } from "src/notifications";
 
 export default function BackupSection() {
 	const [isDownloading, setIsDownloading] = useState(false);
 	const [isRestoring, setIsRestoring] = useState(false);
 	const [restoreFile, setRestoreFile] = useState<File | null>(null);
 	const [restoreConfirmed, setRestoreConfirmed] = useState(false);
+	const [restartRequired, setRestartRequired] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const handleCreateBackup = async () => {
@@ -34,7 +35,7 @@ export default function BackupSection() {
 		setIsRestoring(true);
 		try {
 			await restoreBackup(restoreFile);
-			showSuccess("Restore complete. Please restart the service to apply changes.");
+				setRestartRequired(true);
 			setRestoreFile(null);
 			setRestoreConfirmed(false);
 			if (fileInputRef.current) fileInputRef.current.value = "";
@@ -46,7 +47,24 @@ export default function BackupSection() {
 	};
 
 	return (
-		<div className="card mt-4">
+		<>
+			{restartRequired && (
+				<div className="alert alert-warning alert-dismissible mt-4" role="alert">
+					<div className="d-flex align-items-center gap-2">
+						<IconRefresh width={20} className="flex-shrink-0" />
+						<div className="flex-grow-1">
+							<strong><T id="backup.restart.required" /></strong>
+						</div>
+						<button
+							type="button"
+							className="btn btn-sm btn-warning"
+							onClick={() => setRestartRequired(false)}>
+							<T id="backup.restart.dismiss" />
+						</button>
+					</div>
+				</div>
+			)}
+			<div className="card mt-4">
 			<div className="card-status-top bg-orange" />
 			<div className="card-header">
 				<h2 className="mt-1 mb-0">
@@ -137,5 +155,6 @@ export default function BackupSection() {
 				</div>
 			</div>
 		</div>
+		</>
 	);
 }

@@ -1,4 +1,4 @@
-import { IconDotsVertical, IconEdit, IconPower, IconTrash } from "@tabler/icons-react";
+import { IconAlertTriangle, IconDotsVertical, IconEdit, IconPower, IconTrash } from "@tabler/icons-react";
 import {
 	createColumnHelper,
 	getCoreRowModel,
@@ -29,8 +29,9 @@ interface Props {
 	onDelete?: (id: number) => void;
 	onDisableToggle?: (id: number, enabled: boolean) => void;
 	onNew?: () => void;
+	duplicateKeys?: Set<string>;
 }
-export default function Table({ data, isFetching, onEdit, onDelete, onDisableToggle, onNew, isFiltered }: Props) {
+export default function Table({ data, isFetching, onEdit, onDelete, onDisableToggle, onNew, isFiltered, duplicateKeys }: Props) {
 	const columnHelper = createColumnHelper<ProxyHost>();
 	const columns = useMemo(
 		() => [
@@ -68,7 +69,21 @@ export default function Table({ data, isFetching, onEdit, onDelete, onDisableTog
 				},
 				cell: (info: any) => {
 					const value = info.getValue();
-					return `${value.forwardScheme}://${value.forwardHost}:${value.forwardPort}`;
+					const dest = `${value.forwardScheme}://${value.forwardHost}:${value.forwardPort}`;
+					const key = `${value.forwardHost}:${value.forwardPort}`;
+					const isDuplicate = duplicateKeys?.has(key);
+					return (
+						<span className="d-flex align-items-center gap-1">
+							{dest}
+							{isDuplicate && (
+								<IconAlertTriangle
+									size={14}
+									className="text-warning flex-shrink-0"
+									title={intl.formatMessage({ id: "proxy-hosts.duplicate-warning-icon" })}
+								/>
+							)}
+						</span>
+					);
 				},
 			}),
 			columnHelper.accessor((row: any) => row.certificate, {
@@ -160,7 +175,7 @@ export default function Table({ data, isFetching, onEdit, onDelete, onDisableTog
 				},
 			}),
 		],
-		[columnHelper, onEdit, onDisableToggle, onDelete],
+		[columnHelper, onEdit, onDisableToggle, onDelete, duplicateKeys],
 	);
 
 	const [sorting, setSorting] = useState<SortingState>([]);
