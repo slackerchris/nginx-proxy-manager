@@ -1,4 +1,5 @@
 import { T } from "src/locale";
+import BackupSection from "./BackupSection";
 import DefaultSite from "./DefaultSite";
 
 export default function Layout() {
@@ -35,6 +36,7 @@ export default function Layout() {
 					</div>
 				</div>
 			</div>
+			<BackupSection />
 		</div>
 	);
 }
