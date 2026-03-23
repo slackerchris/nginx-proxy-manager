@@ -1,6 +1,6 @@
 import { IconAlertTriangle, IconDownload, IconRefresh, IconUpload } from "@tabler/icons-react";
 import { useRef, useState } from "react";
-import { createBackup, restoreBackup } from "src/api/backend";
+import { createBackup, restartService, restoreBackup } from "src/api/backend";
 import { Button } from "src/components";
 import { T } from "src/locale";
 import { showError } from "src/notifications";
@@ -8,6 +8,7 @@ import { showError } from "src/notifications";
 export default function BackupSection() {
 	const [isDownloading, setIsDownloading] = useState(false);
 	const [isRestoring, setIsRestoring] = useState(false);
+	const [isRestarting, setIsRestarting] = useState(false);
 	const [restoreFile, setRestoreFile] = useState<File | null>(null);
 	const [restoreConfirmed, setRestoreConfirmed] = useState(false);
 	const [restartRequired, setRestartRequired] = useState(false);
@@ -46,6 +47,18 @@ export default function BackupSection() {
 		}
 	};
 
+	const handleRestart = async () => {
+		setIsRestarting(true);
+		try {
+			await restartService();
+		} catch {
+			// Ignore — the server going down mid-response triggers a network error
+		} finally {
+			setIsRestarting(false);
+			setRestartRequired(false);
+		}
+	};
+
 	return (
 		<>
 			{restartRequired && (
@@ -58,6 +71,14 @@ export default function BackupSection() {
 						<button
 							type="button"
 							className="btn btn-sm btn-warning"
+							disabled={isRestarting}
+							onClick={handleRestart}>
+							<IconRefresh width={14} className="me-1" />
+							<T id="backup.restart.now" />
+						</button>
+						<button
+							type="button"
+							className="btn btn-sm btn-ghost-secondary"
 							onClick={() => setRestartRequired(false)}>
 							<T id="backup.restart.dismiss" />
 						</button>

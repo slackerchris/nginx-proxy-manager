@@ -65,4 +65,28 @@ router
 		}
 	});
 
+/**
+ * POST /api/backup/restart
+ *
+ * Gracefully restart the backend process. Admin only.
+ * Docker / the process manager will restart the container automatically.
+ */
+router
+	.route("/restart")
+	.options((_, res) => {
+		res.sendStatus(204);
+	})
+	.all(jwtdecode())
+	.post(async (req, res, next) => {
+		try {
+			await res.locals.access.can("backup:create");
+			res.status(200).send({ restarting: true });
+			// Send SIGTERM to ourselves — Docker's restart policy brings us back up
+			setTimeout(() => process.kill(process.pid, "SIGTERM"), 500);
+		} catch (err) {
+			debug(logger, `${req.method.toUpperCase()} ${req.path}: ${err}`);
+			next(err);
+		}
+	});
+
 export default router;

@@ -158,6 +158,9 @@
 	"backup.restart.dismiss": {
 		"defaultMessage": "Dismiss"
 	},
+	"backup.restart.now": {
+		"defaultMessage": "Restart Now"
+	},
 	"backup.restart.required": {
 		"defaultMessage": "Restore complete. A service restart is required to apply changes."
 	},

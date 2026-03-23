@@ -43,6 +43,7 @@ export * from "./loginAsUser";
 export * from "./models";
 export * from "./refreshToken";
 export * from "./renewCertificate";
+export * from "./restartService";
 export * from "./restoreBackup";
 export * from "./responseTypes";
 export * from "./setPermissions";

@@ -1,0 +1,8 @@
+[23/Mar/2026:14:08:38 +0000] 400 - - http localhost "-" [Client 78.128.112.74] [Length 154] [Gzip -] "-" "-"
+[23/Mar/2026:14:34:01 +0000] 400 - - http localhost "-" [Client 80.66.83.43] [Length 154] [Gzip -] "-" "-"
+[23/Mar/2026:14:55:55 +0000] 400 - GET http 65.27.230.68 "/" [Client 43.130.100.35] [Length 252] [Gzip -] "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1" "-"
+[23/Mar/2026:15:07:27 +0000] 400 - GET http 65.27.230.68 "/" [Client 3.129.187.38] [Length 654] [Gzip -] "visionheight.com/scan Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/126.0.0.0 Safari/537.36" "-"
+[23/Mar/2026:15:07:28 +0000] 400 - GET http 65.27.230.68 "/" [Client 3.129.187.38] [Length 654] [Gzip -] "visionheight.com/scan Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/126.0.0.0 Safari/537.36" "-"
+[23/Mar/2026:15:07:45 +0000] 400 - - http localhost "-" [Client 3.129.187.38] [Length 0] [Gzip -] "-" "-"
+[23/Mar/2026:15:09:40 +0000] 400 - - http localhost "-" [Client 3.129.187.38] [Length 154] [Gzip -] "-" "-"
+[23/Mar/2026:16:47:23 +0000] 400 - - http localhost "-" [Client 78.128.112.74] [Length 154] [Gzip -] "-" "-"

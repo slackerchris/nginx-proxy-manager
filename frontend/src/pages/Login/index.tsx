@@ -197,7 +197,15 @@ export default function Login() {
 						{twoFactorChallenge ? <TwoFactorForm /> : <LoginForm />}
 					</div>
 				</div>
-				<div className="text-center text-secondary mt-3">{getVersion()}</div>
+				<div className="text-center text-secondary mt-3">
+					{getVersion()}
+					{health.data?.fork_version && (
+						<span className="ms-2 text-muted" style={{ fontSize: "0.8em" }}>
+							fork&nbsp;{health.data.fork_version}
+							{health.data.fork_commit ? `@${health.data.fork_commit.slice(0, 7)}` : ""}
+						</span>
+					)}
+				</div>
 			</div>
 		</Page>
 	);

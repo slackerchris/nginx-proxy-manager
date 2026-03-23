@@ -44,6 +44,8 @@ router.get("/", async (_, res /*, next*/) => {
 			minor: Number.parseInt(version.shift(), 10),
 			revision: Number.parseInt(version.shift(), 10),
 		},
+		fork_version: process.env.NPM_BUILD_VERSION || null,
+		fork_commit: process.env.NPM_BUILD_COMMIT || null,
 	});
 });
 

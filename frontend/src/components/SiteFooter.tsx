@@ -55,8 +55,20 @@ export function SiteFooter() {
 									{" "}
 									{getVersion()}{" "}
 								</a>
-							</li>
-							{versionData?.updateAvailable && versionData?.latest && (
+							</li>								{health.data?.fork_version && (
+									<li className="list-inline-item">
+										<a
+											href={`https://github.com/slackerchris/nginx-proxy-manager/commit/${health.data.fork_commit ?? ""}`}
+											className="link-secondary"
+											target="_blank"
+											rel="noopener"
+											title="slackerchris fork"
+										>
+											fork&nbsp;{health.data.fork_version}
+											{health.data.fork_commit ? `@${health.data.fork_commit.slice(0, 7)}` : ""}
+										</a>
+									</li>
+								)}							{versionData?.updateAvailable && versionData?.latest && (
 								<li className="list-inline-item">
 									<a
 										href={`https://github.com/NginxProxyManager/nginx-proxy-manager/releases/tag/${versionData.latest}`}
