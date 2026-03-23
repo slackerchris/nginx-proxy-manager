@@ -11,6 +11,7 @@ import pjson from "../package.json" with { type: "json" };
 const execFileAsync = promisify(execFile);
 
 const DATA_DIR = "/data";
+const LE_DIR = "/etc/letsencrypt";
 
 /**
  * Recursively copy a directory synchronously.
@@ -37,7 +38,7 @@ const internalBackup = {
 	 * Includes:
 	 *   - SQLite database (if using SQLite)
 	 *   - /data/nginx/ configs
-	 *   - /data/letsencrypt/live/ and renewal/ (NOT accounts/)
+	 *   - /etc/letsencrypt/live/ and renewal/ (NOT accounts/)
 	 *   - manifest.json
 	 *
 	 * @param  {Object}                    access
@@ -94,17 +95,9 @@ const internalBackup = {
 
 				// Let's Encrypt — live and renewal only, never accounts/
 				// (accounts/ is environment-specific and should not be restored across instances)
-				const leLiveDir = path.join(DATA_DIR, "letsencrypt", "live");
-				const leRenewalDir = path.join(
-					DATA_DIR,
-					"letsencrypt",
-					"renewal",
-				);
-				const leRenewalHooksDir = path.join(
-					DATA_DIR,
-					"letsencrypt",
-					"renewal-hooks",
-				);
+				const leLiveDir = path.join(LE_DIR, "live");
+				const leRenewalDir = path.join(LE_DIR, "renewal");
+				const leRenewalHooksDir = path.join(LE_DIR, "renewal-hooks");
 
 				if (fs.existsSync(leLiveDir)) {
 					archive.directory(leLiveDir, "letsencrypt/live");
@@ -278,7 +271,7 @@ const internalBackup = {
 				];
 				for (const src of leLiveCandidates) {
 					if (fs.existsSync(src)) {
-						copyDirSync(src, path.join(DATA_DIR, "letsencrypt", "live"));
+						copyDirSync(src, path.join(LE_DIR, "live"));
 						manifest.contents.push("letsencrypt_live");
 						break;
 					}
@@ -291,7 +284,7 @@ const internalBackup = {
 				];
 				for (const src of leRenewalCandidates) {
 					if (fs.existsSync(src)) {
-						copyDirSync(src, path.join(DATA_DIR, "letsencrypt", "renewal"));
+						copyDirSync(src, path.join(LE_DIR, "renewal"));
 						manifest.contents.push("letsencrypt_renewal");
 						break;
 					}
@@ -326,7 +319,7 @@ const internalBackup = {
 				if (manifest.contents.includes("letsencrypt_live")) {
 					const src = path.join(probeRoot, "letsencrypt", "live");
 					if (fs.existsSync(src)) {
-						copyDirSync(src, path.join(DATA_DIR, "letsencrypt", "live"));
+						copyDirSync(src, path.join(LE_DIR, "live"));
 					}
 				}
 
@@ -334,7 +327,7 @@ const internalBackup = {
 				if (manifest.contents.includes("letsencrypt_renewal")) {
 					const src = path.join(probeRoot, "letsencrypt", "renewal");
 					if (fs.existsSync(src)) {
-						copyDirSync(src, path.join(DATA_DIR, "letsencrypt", "renewal"));
+						copyDirSync(src, path.join(LE_DIR, "renewal"));
 					}
 				}
 			}
