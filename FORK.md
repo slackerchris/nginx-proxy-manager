@@ -101,6 +101,92 @@ Vite proxies `/api/*` → `http://localhost:3000/*` (prefix stripped), configure
 
 ---
 
+## Building & Deploying
+
+### 1. Build the frontend
+
+```bash
+cd ~/npm-fork/frontend
+nvm use 22
+yarn install
+yarn build          # outputs to frontend/dist/
+cd ..
+```
+
+### 2. Build the Docker image
+
+```bash
+docker build \
+  -f docker/Dockerfile \
+  -t slackerchris/nginx-proxy-manager:latest \
+  --build-arg BUILD_VERSION=fork-dev \
+  --build-arg BUILD_COMMIT=$(git rev-parse --short HEAD) \
+  --build-arg BUILD_DATE=$(date -u +%Y-%m-%dT%H:%M:%SZ) \
+  .
+```
+
+### 3. Get the image onto your target host
+
+**Option A — tarball (no registry needed):**
+
+```bash
+docker save slackerchris/nginx-proxy-manager:latest | gzip > npm-fork.tar.gz
+scp npm-fork.tar.gz user@your-host:/tmp/
+# on the target:
+docker load < /tmp/npm-fork.tar.gz
+```
+
+**Option B — push to GitHub Container Registry (GHCR):**
+
+```bash
+echo $GITHUB_TOKEN | docker login ghcr.io -u slackerchris --password-stdin
+docker tag slackerchris/nginx-proxy-manager:latest ghcr.io/slackerchris/nginx-proxy-manager:latest
+docker push ghcr.io/slackerchris/nginx-proxy-manager:latest
+# on the target:
+docker pull ghcr.io/slackerchris/nginx-proxy-manager:latest
+```
+
+### 4. Run it (LXC / any Docker host)
+
+**LXC requirements (Proxmox):** Docker needs either a privileged container, or an unprivileged container with `features: nesting=1,keyctl=1` set in the LXC config.
+
+```bash
+# Install Docker on the LXC (Debian/Ubuntu)
+apt update && apt install -y docker.io docker-compose-plugin
+```
+
+Create `/opt/npm/docker-compose.yml`:
+
+```yaml
+services:
+  npm:
+    image: slackerchris/nginx-proxy-manager:latest
+    container_name: npm
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "81:81"    # admin UI
+      - "443:443"
+    environment:
+      DB_SQLITE_FILE: "/data/database.sqlite"
+      PUID: 1000
+      PGID: 1000
+    volumes:
+      - ./data:/data
+      - ./letsencrypt:/etc/letsencrypt
+```
+
+```bash
+mkdir -p /opt/npm/data /opt/npm/letsencrypt
+cd /opt/npm
+docker compose up -d
+```
+
+Admin UI: `http://<host-ip>:81`  
+Default login: `admin@example.com` / `changeme`
+
+---
+
 ## Pulling Upstream Changes
 
 ```bash
