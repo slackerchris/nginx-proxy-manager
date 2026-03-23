@@ -1,3 +1,6 @@
+> **This is a personal fork of [NginxProxyManager/nginx-proxy-manager](https://github.com/NginxProxyManager/nginx-proxy-manager).**
+> Custom features (backup/restore, cert expiry badges, duplicate host detection) are documented in [FORK.md](FORK.md).
+
 <p align="center">
 	<img src="https://nginxproxymanager.com/github.png">
 	<br><br>
