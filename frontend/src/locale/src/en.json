@@ -137,6 +137,39 @@
 	"auto": {
 		"defaultMessage": "Auto"
 	},
+	"backup.contents.certs": {
+		"defaultMessage": "SSL certificate data (live + renewal)"
+	},
+	"backup.contents.database": {
+		"defaultMessage": "SQLite database"
+	},
+	"backup.contents.nginx": {
+		"defaultMessage": "Nginx proxy configurations"
+	},
+	"backup.create": {
+		"defaultMessage": "Create Backup"
+	},
+	"backup.create.button": {
+		"defaultMessage": "Download Backup"
+	},
+	"backup.create.description": {
+		"defaultMessage": "Download an archive of your configuration. Does not include ACME account keys."
+	},
+	"backup.restore": {
+		"defaultMessage": "Restore from Backup"
+	},
+	"backup.restore.button": {
+		"defaultMessage": "Restore Backup"
+	},
+	"backup.restore.confirm": {
+		"defaultMessage": "I understand this will overwrite all current configuration"
+	},
+	"backup.restore.warning": {
+		"defaultMessage": "This will overwrite all current proxy configuration and certificates. A service restart is required after restore completes."
+	},
+	"backup.title": {
+		"defaultMessage": "Backup & Restore"
+	},
 	"cancel": {
 		"defaultMessage": "Cancel"
 	},

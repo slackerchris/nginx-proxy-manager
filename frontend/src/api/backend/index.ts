@@ -1,5 +1,6 @@
 export * from "./checkVersion";
 export * from "./createAccessList";
+export * from "./createBackup";
 export * from "./createCertificate";
 export * from "./createDeadHost";
 export * from "./createProxyHost";
@@ -42,6 +43,7 @@ export * from "./loginAsUser";
 export * from "./models";
 export * from "./refreshToken";
 export * from "./renewCertificate";
+export * from "./restoreBackup";
 export * from "./responseTypes";
 export * from "./setPermissions";
 export * from "./testHttpCertificate";
