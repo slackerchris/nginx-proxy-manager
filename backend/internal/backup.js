@@ -3,7 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
-import archiver from "archiver";
+import { TarArchive } from "archiver";
 import { configGet, isSqlite } from "../lib/config.js";
 import errs from "../lib/error.js";
 import pjson from "../package.json" with { type: "json" };
@@ -67,7 +67,7 @@ const internalBackup = {
 					'attachment; filename="npm-backup.tar.gz"',
 				);
 
-				const archive = archiver("tar", { gzip: true });
+				const archive = new TarArchive({ gzip: true });
 
 				archive.on("error", (err) => {
 					reject(
